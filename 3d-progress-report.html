@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Progress Report</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      perspective: 1000px;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      transform-style: preserve-3d;
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotateX(0deg); }
+      50% { transform: translateY(-20px) rotateX(5deg); }
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 3em;
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .progress-card {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 30px;
+      margin: 20px 0;
+      transform: rotateX(10deg) rotateY(-5deg);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .progress-card:hover {
+      transform: rotateX(0deg) rotateY(0deg) scale(1.05);
+    }
+
+    .marks, .ranking {
+      font-size: 2em;
+      color: #fff;
+      margin: 20px 0;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .marks span, .ranking span {
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffd700, #ff6b6b);
+      border-radius: 10px;
+      transition: width 2s ease;
+    }
+
+    .buttons {
+      margin-top: 40px;
+    }
+
+    button {
+      background: linear-gradient(45deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      border-radius: 25px;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background: #ffd700;
+      animation: confetti-fall 3s linear infinite;
+    }
+
+    @keyframes confetti-fall {
+      0% { transform: translateY(-100vh) rotate(0deg); }
+      100% { transform: translateY(100vh) rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+    <div class="container">
+      <h1>🎉 3D Progress Report</h1>
+
+      <div class="user-info" style="font-size: 1.5em; color: white; margin-bottom: 20px;">
+        User: <span id="user-name">Guest</span>
+      </div>
+
+      <div class="animated-picture-container" style="margin-bottom: 30px;">
+        <img src="https://img.freepik.com/premium-photo/books-library-with-old-books-3d-render-3d-illustration-aigenerated_569725-2836.jpg?w=2000" alt="3D Books Library" style="width: 300px; height: auto; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);" />
+      </div>
+
+      <div class="progress-card">
+        <div class="marks">
+          Your Marks: <span id="user-marks">85</span>/100
+        </div>
+
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width: 85%;"></div>
+        </div>
+
+        <div class="ranking">
+          Your Ranking: <span id="user-ranking">#3</span> out of 50 students
+        </div>
+      </div>
+
+    <div class="buttons">
+      <button id="back-btn">Back to Main Page</button>
+      <button id="celebrate-btn">Celebrate! 🎊</button>
+    </div>
+  </div>
+
+  <script>
+    // Load progress data from localStorage
+    function loadProgressData() {
+      const progressData = JSON.parse(localStorage.getItem('progressData')) || [];
+      const userName = localStorage.getItem('userName') || 'Guest';
+      document.getElementById('user-name').textContent = userName;
+
+      if (progressData.length === 0) {
+        // No quiz data yet, show default values
+        document.getElementById('user-marks').textContent = '0';
+        document.getElementById('user-ranking').textContent = '#N/A';
+        document.getElementById('progress-fill').style.width = '0%';
+        return;
+      }
+
+      // Sum all quiz scores
+      const totalScore = progressData.reduce((acc, item) => acc + item.score, 0);
+      const totalQuestions = 10 * progressData.length; // Total questions across all quizzes
+      const percentage = Math.round((totalScore / totalQuestions) * 100);
+
+      // Calculate ranking (simplified - in a real app, this would compare with all students)
+      const allScores = progressData.map(item => item.score);
+      const totalScores = allScores.reduce((acc, score) => acc + score, 0);
+      const sortedScores = [totalScores]; // Simplified: only current user's total score
+      const ranking = 1; // Since no other data, rank is 1
+
+      // Update the display
+      document.getElementById('user-marks').textContent = totalScore;
+      document.getElementById('user-ranking').textContent = '#' + ranking;
+      document.getElementById('progress-fill').style.width = percentage + '%';
+    }
+
+    // Load progress data when page loads
+    loadProgressData();
+
+    // Also load when page becomes visible (in case user returns from quiz)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        loadProgressData();
+      }
+    });
+
+    // Back to main page button
+    document.getElementById('back-btn').addEventListener('click', () => {
+      window.location.href = 'PROJECT_OF_HACKATHON.html';
+    });
+
+    // Celebrate button
+    document.getElementById('celebrate-btn').addEventListener('click', () => {
+      for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.animationDelay = Math.random() * 3 + 's';
+        confetti.style.background = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        document.body.appendChild(confetti);
+
+        setTimeout(() => {
+          document.body.removeChild(confetti);
+        }, 3000);
+      }
+    });
+
+    // Add some 3D rotation on mouse move
+    document.addEventListener('mousemove', (e) => {
+      const container = document.querySelector('.container');
+      const xAxis = (window.innerWidth / 2 - e.pageX) / 25;
+      const yAxis = (window.innerHeight / 2 - e.pageY) / 25;
+      container.style.transform = `rotateY(${xAxis}deg) rotateX(${yAxis}deg)`;
+    });
+  </script>
+</body>
+</html>
